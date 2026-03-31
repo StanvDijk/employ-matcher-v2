@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Kandidaat Matcher | Employ</title>
+  <style>
+    :root {
+      --primary: #F57C00;
+      --primary-hover: #E65100;
+      --text: #1A1A1A;
+      --gray: #666;
+      --light: #F9F9F9;
+      --border: #E0E0E0;
+      --green: #388E3C;
+      --red: #D32F2F;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: var(--text); line-height: 1.6; }
+
+    /* Header */
+    .header { padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.5rem; font-weight: 700; }
+    .logo-employ { color: var(--text); }
+    .logo-werkt { color: var(--primary); }
+    .badge { background: var(--primary); color: #fff; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+    /* Container */
+    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero h1 { font-size: 2rem; font-weight: 700; }
+    .hero p { color: var(--gray); font-size: 1.05rem; margin-top: 0.25rem; }
+
+    /* Two-column layout */
+    .main { display: grid; grid-template-columns: 2fr 3fr; gap: 0; min-height: 500px; }
+    .input-section { background: var(--light); padding: 1.25rem 1.5rem; border-radius: 12px 0 0 12px; border-right: 1px solid var(--border); position: sticky; top: 2rem; }
+    .results-section { padding: 1.25rem 1.5rem; border-radius: 0 12px 12px 0; }
+
+    .section-header { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+
+    textarea { width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit; resize: vertical; transition: border-color 0.2s, box-shadow 0.2s; }
+    textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(245,124,0,0.1); }
+
+    .privacy-notice { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.75rem; background: #FFF8E1; border: 1px solid #FFE082; border-radius: 6px; margin-top: 1rem; font-size: 0.8rem; color: var(--primary); }
+    .hint { margin-top: 0.5rem; font-size: 0.75rem; color: var(--gray); font-style: italic; }
+
+    .form-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; flex: 2; padding: 0.875rem 1.5rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-secondary { display: inline-flex; align-items: center; justify-content: center; flex: 1; padding: 0.875rem 1rem; background: transparent; color: var(--gray); border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+    .btn-secondary:hover { background: var(--light); border-color: var(--gray); color: var(--text); }
+
+    /* Spinner */
+    .spinner { width: 20px; height: 20px; animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Results */
+    .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 2rem; text-align: center; background: var(--light); border-radius: 8px; border: 2px dashed var(--border); min-height: 200px; }
+    .placeholder-text { color: var(--gray); font-size: 0.95rem; }
+    .placeholder-hint { color: #999; font-size: 0.85rem; }
+    .results-section.has-results .placeholder { display: none; }
+
+    .results-grid { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Match Card */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: box-shadow 0.2s, border-color 0.2s; }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--primary); }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem; }
+    .card-title { font-size: 1rem; font-weight: 600; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; color: var(--gray); font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .score { display: flex; align-items: center; justify-content: center; min-width: 50px; height: 50px; background: var(--primary); color: #fff; border-radius: 50%; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
+    .score.low { background: var(--red); }
+    .score.mid { background: #FFA000; }
+
+    .breakdown { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .breakdown-item { display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; background: var(--light); border-radius: 4px; font-size: 0.8rem; }
+    .breakdown-label { color: var(--gray); }
+    .breakdown-value { font-weight: 600; }
+
+    .explanation { font-size: 0.9rem; color: var(--gray); line-height: 1.5; }
+
+    /* Email button */
+    .btn-email { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 0.75rem; }
+    .btn-email:hover { background: var(--primary-hover); }
+    .btn-email svg { width: 14px; height: 14px; }
+
+    /* Accordion */
+    .details-section { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+    details { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    summary { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--light); font-weight: 500; font-size: 0.85rem; cursor: pointer; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    details ul { margin: 0; padding: 0.6rem 0.8rem 0.6rem 1.8rem; font-size: 0.82rem; color: var(--gray); line-height: 1.6; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray); }
+    .modal-close:hover { color: var(--text); }
+    .email-textarea { width: 100%; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem; line-height: 1.6; resize: vertical; background: var(--light); }
+    .modal-actions { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+    .modal-actions .btn-primary { flex: none; padding: 0.65rem 1.25rem; font-size: 0.9rem; }
+    .copy-feedback { color: var(--green); font-weight: 600; font-size: 0.85rem; }
+    .modal-hint { margin-top: 0.75rem; font-size: 0.75rem; color: var(--gray); font-style: italic; }
+
+    /* Footer */
+    .footer { text-align: center; padding: 1.5rem; color: var(--gray); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; gap: 1.5rem; }
+      .input-section { position: static; border-radius: 12px; border-right: none; }
+      .results-section { padding: 0; border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo"><span class="logo-employ">EMPLOY</span><span class="logo-werkt">werkt!</span></div>
+    <span class="badge">DEMO</span>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Kandidaat Matcher</h1>
+      <p>Plak een anoniem profiel en vind de beste vacature-match</p>
+    </section>
+
+    <div class="main">
+      <section class="input-section">
+        <h2 class="section-header">Kandidaatprofiel</h2>
+        <form id="match-form">
+          <textarea id="profile" rows="12" placeholder="Plak hier het kandidaatprofiel (werkervaring, skills, locatie...)&#10;&#10;Voorbeeld:&#10;Woonplaats: Hoogeveen&#10;5 jaar ervaring als lasser (MIG/MAG)&#10;Kan technische tekeningen lezen&#10;VCA certificaat, rijbewijs B&#10;Beschikbaar: 40 uur per week" required></textarea>
+          <div class="privacy-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Geen persoonsgegevens invoeren (naam, telefoon, e-mail)</span>
+          </div>
+          <div class="hint">Tip: vermeld de woonplaats voor betere locatie-matching</div>
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn-primary">
+              <span id="btn-text">Zoek matches</span>
+              <span id="btn-loading" style="display:none;">
+                <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>
+                Analyseren...
+              </span>
+            </button>
+            <button type="button" id="clear-btn" class="btn-secondary">Wissen</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="results" class="results-section">
+        <h2 class="section-header">Top Matches</h2>
+        <div class="placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E0E0E0" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <p class="placeholder-text">Klaar om te matchen</p>
+          <p class="placeholder-hint">Plak een profiel links en klik op "Zoek matches"</p>
+        </div>
+        <div id="results-container" class="results-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Email Modal -->
+  <div id="email-modal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Concept benadermail</h3>
+        <button id="modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="email-output" class="email-textarea" rows="16" readonly></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="copy-btn" class="btn-primary">Kopieer naar klembord</button>
+        <span id="copy-feedback" class="copy-feedback" style="display:none;">Gekopieerd!</span>
+      </div>
+      <p class="modal-hint">Plak deze mail in RecruitRobin of Indeed en pas de naam aan.</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 Employ Werkt! &mdash; Interne recruitment tool (demo)</p>
+  </footer>
+
+<script>
+// === VACATURES DATABASE (10 Employ vacatures) ===
+const VACATURES = [
+  {
+    titel: "Schoonmaker",
+    locatie: "Meppel",
+    uren: "< 24 uur",
+    salaris: "Vanaf \u20ac 14,71",
+    omschrijving: "schoonmaken kantoren sanitair kantines stofzuigen dweilen afnemen oppervlakken hygi\u00ebnisch zelfstandig",
+    eisen: ["Ervaring in schoonmaak is fijn, maar geen vereiste","Netjes, zelfstandig en betrouwbaar","Je ziet werk liggen en pakt dit zelf op","Woonachtig in of rondom Meppel","Beschikbaar 2 \u00e0 3 dagen per week"],
+    bieden: ["Parttime functie 2-3 dagen per week","Vaste locatie in Meppel","Salaris \u20ac14,71 - \u20ac15 bruto per uur","Wekelijkse of 4-wekelijkse uitbetaling"],
+    keywords: ["schoonmaak","schoonmaker","cleaning","hygi\u00ebne","parttime","zelfstandig"]
+  },
+  {
+    titel: "Monteur Aluminium \u2013 Buitendienst",
+    locatie: "Hoogeveen",
+    uren: "32-40 uur",
+    salaris: "Vanaf \u20ac 14,71",
+    omschrijving: "monteren afwerken aluminium kozijnen frames constructies buitendienst projecten fysiek technisch",
+    eisen: ["Handig en fysiek/technisch werk","Fulltime beschikbaar","Bereid sporadisch in de kost te gaan","Rijbewijs B vereist","Motivatie en goede werkhouding"],
+    bieden: ["Salaris \u20ac14,71 - \u20ac15,00 per uur","Afwisselend werk door heel Nederland","Doorgroeimogelijkheden","Overnachtingen goed geregeld"],
+    keywords: ["monteur","aluminium","montage","kozijnen","buitendienst","technisch","handig"]
+  },
+  {
+    titel: "Senior ICT Specialist",
+    locatie: "Hoogeveen",
+    uren: "32-40 uur",
+    salaris: "\u20ac 3.000 \u2013 \u20ac 4.500/mnd",
+    omschrijving: "ICT systeembeheer Microsoft 365 Azure netwerkbeheer migraties klantbezoek zelfstandig",
+    eisen: ["MBO niveau 4+ werk- en denkniveau","Minimaal 5 jaar ICT-ervaring","Kennis van Microsoft 365, Azure, systeembeheer","Graag naar klanten toe","Zelfstandig ICT-omgevingen opzetten"],
+    bieden: ["32-40 uur, optie 4x9 uur","Salaris \u20ac3.000 \u2013 \u20ac4.500","Leaseauto van de zaak","Laptop en telefoon van de zaak"],
+    keywords: ["ict","it","systeembeheer","microsoft","azure","365","netwerk","helpdesk","systeem","computer"]
+  },
+  {
+    titel: "Lasser",
+    locatie: "Meppel",
+    uren: "32-40 uur",
+    salaris: "\u20ac 2.700 \u2013 \u20ac 3.350/mnd",
+    omschrijving: "lassen MIG MAG staal technische tekeningen samenstellen afwerken kwaliteitscontrole metaal",
+    eisen: ["Ervaring als MIG/MAG-lasser","Zelfstandig technische tekeningen lezen","Nauwkeurig en kwaliteitsgericht","Fulltime, woonachtig rondom Meppel","Ervaring met samenstellen is een pr\u00e9"],
+    bieden: ["Salaris \u20ac2.700 - \u20ac3.350 bruto/maand","Moderne werkplaats met goed gereedschap","Doorgroeimogelijkheden","Mogelijkheid lascertificaten te behalen"],
+    keywords: ["lasser","lassen","mig","mag","staal","metaal","technische tekeningen","constructie","bankwerker"]
+  },
+  {
+    titel: "Dakspecialist",
+    locatie: "Hoogeveen",
+    uren: "32-40 uur",
+    salaris: "Vanaf \u20ac 16/u",
+    omschrijving: "renoveren vernieuwen pannendaken dakbedekking pannen constructies onderhoud buitenwerk",
+    eisen: ["Ervaring als dakspecialist of dakdekker","VCA-certificaat (of bereid te halen)","Goed Nederlands, per direct beschikbaar","Rijbewijs B","Fulltime inzetbaar (40 uur)"],
+    bieden: ["Startloon vanaf \u20ac16,00 per uur","Afwisselend buitenwerk Noord-Nederland","Hecht team, collegiale sfeer","Ruimte voor ontwikkeling"],
+    keywords: ["dak","dakdekker","dakspecialist","pannen","dakbedekking","bouw","renovatie","buiten"]
+  },
+  {
+    titel: "Montagemedewerker Buitendienst",
+    locatie: "Den Haag",
+    uren: "32-40 uur",
+    salaris: "\u20ac 3.000 \u2013 \u20ac 3.800/mnd",
+    omschrijving: "montage projecten meubilair inrichting kantoor leiding team kwaliteit veiligheid planning",
+    eisen: ["Werkervaring als monteur in montage/projectinrichting","Ervaring teamaansturing is pr\u00e9","Technisch inzicht en kwaliteitsgevoel","Goed Nederlands","Rijbewijs B, bereid te reizen"],
+    bieden: ["Salaris \u20ac3.000 - \u20ac3.800/maand","Zelfstandige functie","Doorgroei naar Senior Projectleider","Professionele organisatie"],
+    keywords: ["montage","monteur","meubel","inrichting","projectleider","buitendienst","leiding"]
+  },
+  {
+    titel: "Operator Torba",
+    locatie: "Hoogeveen",
+    uren: "Fulltime",
+    salaris: "Vanaf \u20ac 16/u",
+    omschrijving: "productielijn machine operator technisch productie ploegendienst",
+    eisen: ["Ervaring met productieprocessen","Technische uitdagingen oplossen","MBO niveau 3/4 denkniveau","Bereid tot 2- en 3-ploegendienst"],
+    bieden: ["Technische uitdaging","Vaste aanstelling in het verschiet","Doorgroeimogelijkheden","Goed en passend salaris"],
+    keywords: ["operator","productie","machine","ploegendienst","technisch","fabriek","productiemedewerker"]
+  },
+  {
+    titel: "(Senior) Intercedent / Accountmanager",
+    locatie: "Hoogeveen",
+    uren: "32-40 uur",
+    salaris: "\u20ac 3.000 \u2013 \u20ac 3.500/mnd",
+    omschrijving: "intercedent accountmanager recruiter commercie recruitment relatiebeheer kandidaten klanten uitzend",
+    eisen: ["Ervaring als intercedent/recruiter/accountmanager","Minimaal HBO werk- en denkniveau","Commercieel inzicht","Goed plannen en schakelen","Sociaal en resultaatgericht"],
+    bieden: ["Salaris \u20ac3.000 - \u20ac3.500","Zelfstandige en afwisselende functie","Persoonlijke ontwikkeling en opleidingen","Fijne werkomgeving"],
+    keywords: ["intercedent","accountmanager","recruiter","recruitment","commercieel","hbo","uitzend","sales"]
+  },
+  {
+    titel: "Junior Planvoorbereider",
+    locatie: "Apeldoorn",
+    uren: "32-40 uur",
+    salaris: "\u20ac 16,50 \u2013 \u20ac 21,00/u",
+    omschrijving: "planvoorbereider calculaties offertes renovatie verduurzaming daken bouwkunde technisch",
+    eisen: ["MBO/HBO Bouwkunde of vergelijkbaar","Cijfermatig en technisch inzicht","Gestructureerd en nauwkeurig","Goede digitale vaardigheden","Klantgericht en oplossingsgericht"],
+    bieden: ["\u20ac16,50 - \u20ac21,00 bruto per uur","Ruimte om te leren en doorgroeien","Stabiele werkgever in dakenbranche","Prettige werksfeer, korte lijnen"],
+    keywords: ["planvoorbereider","calculatie","bouwkunde","offerte","technisch","kantoor","junior","mbo","hbo"]
+  },
+  {
+    titel: "Timmerman",
+    locatie: "Den Haag",
+    uren: "32-40 uur",
+    salaris: "\u20ac 16 \u2013 \u20ac 22/u",
+    omschrijving: "timmerman nieuwbouw renovatie onderhoud hout kozijnen wanden constructie",
+    eisen: ["Ervaring als (allround) timmerman","Zelfstandig werken vanaf tekening","VCA-certificaat of bereid te halen","Rijbewijs B en eigen vervoer is pr\u00e9","Nauwkeurig, betrouwbaar, aanpakker"],
+    bieden: ["\u20ac16 - \u20ac22 bruto per uur","Wekelijkse of 4-wekelijkse uitbetaling","Hecht team met waardering","Scholing en doorgroeimogelijkheden"],
+    keywords: ["timmerman","hout","kozijnen","bouw","renovatie","nieuwbouw","constructie","timmeren"]
+  }
+];
+
+// === MATCHING ENGINE (keyword-based) ===
+function matchProfile(profileText) {
+  const profile = profileText.toLowerCase();
+  const profileWords = profile.split(/\s+/);
+
+  const results = VACATURES.map((vac, index) => {
+    // Skill/keyword match (40%)
+    const allKeywords = [...vac.keywords, ...vac.omschrijving.split(/\s+/)];
+    const uniqueKeywords = [...new Set(allKeywords)];
+    let keywordHits = 0;
+    for (const kw of uniqueKeywords) {
+      if (profile.includes(kw.toLowerCase())) keywordHits++;
+    }
+    const skillScore = Math.min(100, Math.round((keywordHits / Math.max(uniqueKeywords.length * 0.3, 1)) * 100));
+
+    // Ervaring (30%) - check for years/experience mentions
+    let ervaringScore = 50; // baseline
+    const yearMatch = profile.match(/(\d+)\s*jaar/);
+    if (yearMatch) {
+      const years = parseInt(yearMatch[1]);
+      if (years >= 5) ervaringScore = 90;
+      else if (years >= 3) ervaringScore = 80;
+      else if (years >= 1) ervaringScore = 65;
+    }
+    // Boost if keywords match experience domain
+    if (keywordHits >= 3) ervaringScore = Math.min(100, ervaringScore + 15);
+
+    // Locatie (15%)
+    let locatieScore = 50;
+    const vacLoc = vac.locatie.toLowerCase();
+    if (profile.includes(vacLoc)) {
+      locatieScore = 100;
+    } else {
+      // Check nearby areas
+      const regions = {
+        'hoogeveen': ['meppel','beilen','coevorden','emmen','assen','drenthe','zwolle'],
+        'meppel': ['hoogeveen','steenwijk','zwolle','beilen','assen','drenthe'],
+        'den haag': ['delft','rijswijk','zoetermeer','leiden','rotterdam','randstad','zuid-holland'],
+        'apeldoorn': ['deventer','zutphen','arnhem','amersfoort','gelderland','zwolle']
+      };
+      const nearby = regions[vacLoc] || [];
+      for (const place of nearby) {
+        if (profile.includes(place)) { locatieScore = 75; break; }
+      }
+    }
+
+    // Uren (10%)
+    let urenScore = 70; // default
+    if (profile.includes('fulltime') || profile.includes('40 uur') || profile.includes('38 uur')) {
+      urenScore = vac.uren.includes('Fulltime') || vac.uren.includes('40') ? 95 : 60;
+    }
+    if (profile.includes('parttime') || profile.includes('deeltijd')) {
+      urenScore = vac.uren.includes('24') || vac.uren.includes('32') ? 85 : 40;
+    }
+
+    // Salaris (5%)
+    const salarisScore = 70; // default, hard to match without specifics
+
+    // Gewogen totaal
+    const total = Math.round(
+      skillScore * 0.40 +
+      ervaringScore * 0.30 +
+      locatieScore * 0.15 +
+      urenScore * 0.10 +
+      salarisScore * 0.05
+    );
+
+    // Genereer uitleg
+    let uitleg = '';
+    if (keywordHits >= 4) uitleg = `Sterk profiel voor deze functie. Meerdere relevante vaardigheden en ervaring sluiten goed aan bij ${vac.titel}.`;
+    else if (keywordHits >= 2) uitleg = `Kandidaat heeft relevante achtergrond die deels aansluit bij de eisen voor ${vac.titel}.`;
+    else uitleg = `Beperkte directe match, maar mogelijk interessant als overstapper naar ${vac.titel}.`;
+
+    if (locatieScore >= 90) uitleg += ` Locatie is een perfecte match (${vac.locatie}).`;
+    else if (locatieScore >= 70) uitleg += ` Locatie is in de regio.`;
+
+    return {
+      index,
+      vacature: vac,
+      score: total,
+      breakdown: { skills: skillScore, ervaring: ervaringScore, locatie: locatieScore, uren: urenScore, salaris: salarisScore },
+      uitleg
+    };
+  });
+
+  // Sorteer op score, top 5
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, 5);
+}
+
+// === UI LOGIC ===
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('match-form');
+  const profileInput = document.getElementById('profile');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = document.getElementById('btn-text');
+  const btnLoading = document.getElementById('btn-loading');
+  const resultsSection = document.getElementById('results');
+  const resultsContainer = document.getElementById('results-container');
+  const clearBtn = document.getElementById('clear-btn');
+  let currentMatches = [];
+
+  clearBtn.addEventListener('click', () => {
+    profileInput.value = '';
+    resultsSection.classList.remove('has-results');
+    resultsContainer.innerHTML = '';
+    profileInput.focus();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const profile = profileInput.value.trim();
+    if (!profile || profile.length < 20) {
+      alert('Voer een uitgebreider kandidaatprofiel in (minimaal 20 tekens).');
+      return;
+    }
+
+    // Loading animation
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-flex';
+
+    // Simulate slight delay for realism
+    setTimeout(() => {
+      const matches = matchProfile(profile);
+      currentMatches = matches;
+      displayResults(matches);
+      submitBtn.disabled = false;
+      btnText.style.display = 'inline';
+      btnLoading.style.display = 'none';
+    }, 800);
+  });
+
+  function displayResults(matches) {
+    resultsContainer.innerHTML = matches.map((m, i) => {
+      const v = m.vacature;
+      const scoreClass = m.score >= 70 ? '' : m.score >= 50 ? 'mid' : 'low';
+      return `
+        <article class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">${esc(v.titel)}</h3>
+              <div class="card-meta">
+                <span>${esc(v.locatie)}</span>
+                <span>${esc(v.uren)}</span>
+                <span>${esc(v.salaris)}</span>
+              </div>
+            </div>
+            <div class="score ${scoreClass}">${m.score}%</div>
+          </div>
+          <div class="breakdown">
+            <div class="breakdown-item"><span class="breakdown-label">Skills:</span> <span class="breakdown-value">${m.breakdown.skills}%</span></div>
+            <div class="breakdown-item"><span class="breakdown-label">Ervaring:</span> <span class="breakdown-value">${m.breakdown.ervaring}%</span></div>
+            <div class="breakdown-item"><span class="breakdown-label">Locatie:</span> <span class="breakdown-value">${m.breakdown.locatie}%</span></div>
+            <div class="breakdown-item"><span class="breakdown-label">Uren:</span> <span class="breakdown-value">${m.breakdown.uren}%</span></div>
+            <div class="breakdown-item"><span class="breakdown-label">Salaris:</span> <span class="breakdown-value">${m.breakdown.salaris}%</span></div>
+          </div>
+          <p class="explanation">${esc(m.uitleg)}</p>
+          <button class="btn-email" onclick="openEmail(${i})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+            Genereer benadermail
+          </button>
+          <div class="details-section">
+            ${v.eisen.length ? `<details><summary>Functie-eisen</summary><ul>${v.eisen.map(e => '<li>'+esc(e)+'</li>').join('')}</ul></details>` : ''}
+            ${v.bieden.length ? `<details><summary>Arbeidsvoorwaarden</summary><ul>${v.bieden.map(b => '<li>'+esc(b)+'</li>').join('')}</ul></details>` : ''}
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    resultsSection.classList.add('has-results');
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // === EMAIL MODAL ===
+  const modal = document.getElementById('email-modal');
+  const modalClose = document.getElementById('modal-close');
+  const emailOutput = document.getElementById('email-output');
+  const copyBtn = document.getElementById('copy-btn');
+  const copyFeedback = document.getElementById('copy-feedback');
+
+  modalClose.addEventListener('click', () => modal.style.display = 'none');
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.style.display = 'none'; });
+
+  copyBtn.addEventListener('click', () => {
+    emailOutput.select();
+    navigator.clipboard.writeText(emailOutput.value).then(() => {
+      copyFeedback.style.display = 'inline';
+      setTimeout(() => copyFeedback.style.display = 'none', 2000);
+    });
+  });
+
+  window.openEmail = function(index) {
+    const m = currentMatches[index];
+    if (!m) return;
+    const v = m.vacature;
+
+    const email = `Beste [naam kandidaat],
+
+Via ons recruitmentplatform kwam ik jouw profiel tegen en ik denk dat er een mooie match is!
+
+Wij hebben op dit moment de volgende vacature openstaan:
+
+\ud83d\udccb ${v.titel}
+\ud83d\udccd ${v.locatie} (${v.uren})
+\ud83d\udcb0 ${v.salaris}
+
+Waarom ik aan jou denk: ${m.uitleg}
+
+Wat wij zoeken:
+${v.eisen.slice(0, 4).map(e => '\u2022 ' + e).join('\n')}
+
+Wat wij bieden:
+${v.bieden.slice(0, 4).map(b => '\u2022 ' + b).join('\n')}
+
+Heb je interesse of wil je vrijblijvend meer weten? Ik hoor het graag!
+
+Met vriendelijke groet,
+[jouw naam]
+Employ Werkt!`;
+
+    emailOutput.value = email;
+    modal.style.display = 'flex';
+  };
+
+  function esc(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+});
+</script>
+</body>
+</html>
